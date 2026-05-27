@@ -43,6 +43,7 @@ export default function Navbar() {
                             src="/profile.png"
                             alt="Profile"
                             fill
+                            sizes="40px"
                             className="object-cover"
                         />
                     </div>

@@ -24,6 +24,7 @@ export default function Sidebar() {
                             src="/logo.png"
                             alt="VedaAI Logo"
                             fill
+                            sizes="100px"
                             className="object-contain"
                         />
                     </div>
@@ -79,6 +80,7 @@ export default function Sidebar() {
                             src="/profile.png"
                             alt="Profile"
                             fill
+                            sizes="40px"
                             className="object-cover"
                         />
                     </div>
