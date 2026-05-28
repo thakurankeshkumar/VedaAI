@@ -61,7 +61,7 @@ export default function Sidebar() {
         },
         {
             label: "My Groups",
-            href: "/groups",
+            href: "/my-groups",
             icon: <Users size={20} />,
         },
         {

@@ -1,16 +1,19 @@
 import Sidebar from "@/components/sidebar";
 import Navbar from "@/components/navbar";
+import MobileBottomBar from "@/components/MobileBottomBar";
 
 export default function DashboardLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+
     return (
+
         <div className="flex h-screen overflow-hidden bg-[#f4f4f4]">
 
-            {/* Sidebar */}
-            <div className="h-screen sticky top-0">
+            {/* Desktop Sidebar */}
+            <div className="hidden lg:block h-screen sticky top-0">
                 <Sidebar />
             </div>
 
@@ -22,10 +25,13 @@ export default function DashboardLayout({
                     <Navbar />
                 </div>
 
-                {/* Scrollable Content */}
-                <main className="flex-1 overflow-y-auto p-4 pt-2">
+                {/* Page Content */}
+                <main className="flex-1 overflow-y-auto p-4 pt-2 pb-32 lg:pb-4">
                     {children}
                 </main>
+
+                {/* Mobile Bottom Navigation */}
+                <MobileBottomBar />
 
             </div>
         </div>
