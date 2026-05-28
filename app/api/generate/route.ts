@@ -11,8 +11,15 @@ type QuestionType = {
 };
 
 type RequestBody = {
+
+    subject: string;
+
+    class: string;
+
     dueDate: string;
+
     instructions: string;
+
     questionTypes: QuestionType[];
 };
 
@@ -20,20 +27,30 @@ export async function POST(req: Request) {
 
     try {
 
-        const body: RequestBody = await req.json();
+        const body: RequestBody =
+            await req.json();
 
         const {
+
+            subject,
+
+            class: className,
+
             dueDate,
+
             instructions,
+
             questionTypes,
+
         } = body;
 
-        const formattedQuestions = questionTypes
-            .map(
-                (q) =>
-                    `${q.type}: ${q.count} questions (${q.marks} marks each)`
-            )
-            .join("\n");
+        const formattedQuestions =
+            questionTypes
+                .map(
+                    (q) =>
+                        `${q.type}: ${q.count} questions (${q.marks} marks each)`
+                )
+                .join("\n");
 
         const prompt = `
 You are an AI Question Paper Generator.
@@ -50,14 +67,20 @@ JSON Structure:
 
 {
   "schoolName": "Delhi Public School",
-  "subject": "Web Development",
-  "class": "10th",
+
+  "subject": "${subject}",
+
+  "class": "${className}",
+
   "time": "1 Hour",
+
   "totalMarks": "20",
+
   "instructions": [
     "Attempt all questions",
     "Write neatly"
   ],
+
   "sections": [
     {
       "title": "Multiple Choice Questions",
@@ -65,10 +88,10 @@ JSON Structure:
         {
           "question": "What does HTML stand for?",
           "options": [
-            "A) Hyper Text Markup Language",
-            "B) High Transfer Machine Language",
-            "C) Hyperlinks Text Mark Language",
-            "D) Home Tool Markup Language"
+            "Hyper Text Markup Language",
+            "High Transfer Machine Language",
+            "Hyperlinks Text Mark Language",
+            "Home Tool Markup Language"
           ],
           "marks": "1",
           "difficulty": "Easy"
@@ -76,13 +99,20 @@ JSON Structure:
       ]
     }
   ],
+
   "answers": [
     {
       "question": "What does HTML stand for?",
-      "answer": "A) Hyper Text Markup Language"
+      "answer": "Hyper Text Markup Language"
     }
   ]
 }
+
+Subject:
+${subject}
+
+Class:
+${className}
 
 Requirements:
 ${formattedQuestions}
@@ -96,13 +126,16 @@ ${dueDate}
 
         const completion =
             await groq.chat.completions.create({
+
                 model: "llama-3.3-70b-versatile",
+
                 messages: [
                     {
                         role: "user",
                         content: prompt,
                     },
                 ],
+
                 temperature: 0.5,
             });
 
@@ -126,16 +159,21 @@ ${dueDate}
 
         try {
 
-            parsedResult = JSON.parse(rawResponse);
+            parsedResult =
+                JSON.parse(rawResponse);
 
         } catch {
 
-            console.log("Invalid JSON:", rawResponse);
+            console.log(
+                "Invalid JSON:",
+                rawResponse
+            );
 
             return Response.json(
                 {
                     success: false,
-                    message: "AI returned invalid JSON",
+                    message:
+                        "AI returned invalid JSON",
                 },
                 {
                     status: 500,
@@ -144,7 +182,9 @@ ${dueDate}
         }
 
         return Response.json({
+
             success: true,
+
             result: parsedResult,
         });
 

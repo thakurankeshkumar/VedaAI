@@ -22,6 +22,12 @@ type AssignmentType = {
     }[];
 };
 
+type SettingsType = {
+    schoolName: string;
+    teacherName: string;
+    city: string;
+};
+
 export default function AssignmentPage() {
 
     const params = useParams();
@@ -30,6 +36,7 @@ export default function AssignmentPage() {
         useState<AssignmentType | null>(null);
 
     const [loading, setLoading] = useState(true);
+    const [settings, setSettings] = useState<SettingsType | null>(null);
 
     const paperRef = useRef<HTMLDivElement>(null);
 
@@ -47,6 +54,18 @@ export default function AssignmentPage() {
 
                 if (data.success) {
                     setAssignment(data.assignment);
+                }
+
+                // SETTINGS FETCH
+
+                const settingsRes =
+                    await fetch("/api/settings");
+
+                const settingsData =
+                    await settingsRes.json();
+
+                if (settingsData.success) {
+                    setSettings(settingsData.settings);
                 }
 
             } catch (error) {
@@ -205,7 +224,7 @@ export default function AssignmentPage() {
                             mb-5
                         "
                     >
-                        {assignment.schoolName}
+                        {settings?.schoolName || assignment.schoolName}
                     </h1>
 
                     <h2
