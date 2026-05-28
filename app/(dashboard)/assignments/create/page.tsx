@@ -101,6 +101,7 @@ export default function CreateAssignmentPage() {
 
             setLoading(true);
 
+            // STEP 1 → Generate Assignment
             const response = await fetch("/api/generate", {
                 method: "POST",
 
@@ -113,19 +114,33 @@ export default function CreateAssignmentPage() {
 
             const data = await response.json();
 
-            if (data.success) {
-
-                localStorage.setItem(
-                    "generatedAssignment",
-                    JSON.stringify(data.result)
-                );
-
-                router.push("/assignments/generated");
-
-            } else {
+            if (!data.success) {
 
                 alert("Generation failed");
+                return;
             }
+
+            // STEP 2 → Save Assignment To MongoDB
+            const saveResponse = await fetch("/api/assignments", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data.result),
+            });
+
+            const savedData = await saveResponse.json();
+
+            if (!savedData.success) {
+
+                alert("Saving failed");
+                return;
+            }
+
+            // STEP 3 → Redirect To Dynamic Assignment Page
+            router.push(
+                `/assignments/${savedData.assignment._id}`
+            );
 
         } catch (error) {
 

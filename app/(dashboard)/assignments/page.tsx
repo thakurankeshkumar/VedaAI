@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export default function AssignmentsPage() {
     return (
-        <DashboardLayout>
+        // <DashboardLayout>
 
             <div className="w-full h-full flex items-center justify-center">
 
@@ -34,6 +34,6 @@ export default function AssignmentsPage() {
                 </div>
             </div>
 
-        </DashboardLayout>
+        // {/* </DashboardLayout> */}
     );
 }
