@@ -169,7 +169,7 @@ export default function CreateAssignmentPage() {
     );
 
     return (
-        <DashboardLayout>
+        // <DashboardLayout>
 
             <div className="h-full text-black overflow-y-auto px-10 py-6">
 
@@ -417,6 +417,6 @@ export default function CreateAssignmentPage() {
 
             </div>
 
-        </DashboardLayout>
+        // </DashboardLayout>
     );
 }

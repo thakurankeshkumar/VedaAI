@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import {
     LayoutGrid,
@@ -14,9 +15,43 @@ import {
     Sparkles,
 } from "lucide-react";
 
+type SettingsType = {
+    schoolName: string;
+    city: string;
+};
+
 export default function Sidebar() {
 
     const pathname = usePathname();
+
+    const [settings, setSettings] =
+        useState<SettingsType | null>(null);
+
+    useEffect(() => {
+
+        async function fetchSettings() {
+
+            try {
+
+                const res =
+                    await fetch("/api/settings");
+
+                const data = await res.json();
+
+                if (data.success) {
+
+                    setSettings(data.settings);
+                }
+
+            } catch (error) {
+
+                console.log(error);
+            }
+        }
+
+        fetchSettings();
+
+    }, []);
 
     const menuItems = [
         {
@@ -48,7 +83,17 @@ export default function Sidebar() {
 
     return (
 
-        <div className="w-[310px] h-full bg-[#F5F5F5] rounded-[30px] p-6 flex flex-col justify-between shadow-xl">
+        <div className="
+            w-[310px]
+            h-full
+            bg-[#F5F5F5]
+            rounded-[30px]
+            p-6
+            flex
+            flex-col
+            justify-between
+            shadow-xl
+        ">
 
             {/* TOP */}
 
@@ -73,7 +118,11 @@ export default function Sidebar() {
 
                     </div>
 
-                    <h1 className="text-[42px] font-bold text-[#2D2D2D]">
+                    <h1 className="
+                        text-[42px]
+                        font-bold
+                        text-[#2D2D2D]
+                    ">
                         VedaAI
                     </h1>
 
@@ -119,7 +168,9 @@ export default function Sidebar() {
 
                             const active =
                                 pathname === item.href ||
-                                pathname.startsWith(`${item.href}/`);
+                                pathname.startsWith(
+                                    `${item.href}/`
+                                );
 
                             return (
 
@@ -147,12 +198,28 @@ export default function Sidebar() {
                     href="/settings"
                     icon={<Settings size={20} />}
                     label="Settings"
-                    active={pathname === "/settings"}
+                    active={
+                        pathname === "/settings"
+                    }
                 />
 
-                <div className="mt-5 bg-[#ECECEC] rounded-[24px] p-3 flex items-center gap-4">
+                <div className="
+                    mt-5
+                    bg-[#ECECEC]
+                    rounded-[24px]
+                    p-3
+                    flex
+                    items-center
+                    gap-4
+                ">
 
-                    <div className="relative w-14 h-14 rounded-full overflow-hidden">
+                    <div className="
+                        relative
+                        w-14
+                        h-14
+                        rounded-full
+                        overflow-hidden
+                    ">
 
                         <Image
                             src="/profile.png"
@@ -166,12 +233,21 @@ export default function Sidebar() {
 
                     <div>
 
-                        <h3 className="font-bold text-black">
-                            Delhi Public School
+                        <h3 className="
+                            font-bold
+                            text-black
+                        ">
+                            {
+                                settings?.schoolName ||
+                                "School Name"
+                            }
                         </h3>
 
                         <p className="text-gray-500">
-                            Bokaro Steel City
+                            {
+                                settings?.city ||
+                                "City"
+                            }
                         </p>
 
                     </div>

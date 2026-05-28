@@ -1,19 +1,34 @@
 "use client";
+
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import Link from "next/link";
+
+import {
+    useEffect,
+    useState,
+} from "react";
+
+type AssignmentType = {
+    _id: string;
+    schoolName: string;
+    subject: string;
+    class: string;
+    createdAt: string;
+};
 
 export default function AssignmentsPage() {
-    type AssignmentType = {
-        _id: string;
-        schoolName: string;
-        subject: string;
-        class: string;
-        createdAt: string;
-    };
-    const [assignments, setAssignments] = useState<AssignmentType[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [openMenu, setOpenMenu] = useState<string | null>(null);
 
+    const [assignments, setAssignments] =
+        useState<AssignmentType[]>([]);
+
+    const [loading, setLoading] =
+        useState(true);
+
+    const [search, setSearch] =
+        useState("");
+
+    const [openMenu, setOpenMenu] =
+        useState<string | null>(null);
 
     useEffect(() => {
 
@@ -21,17 +36,25 @@ export default function AssignmentsPage() {
 
             try {
 
-                const res = await fetch("/api/assignments");
+                const res =
+                    await fetch("/api/assignments");
 
-                const data = await res.json();
+                const data =
+                    await res.json();
 
                 if (data.success) {
-                    setAssignments(data.assignments);
+
+                    setAssignments(
+                        data.assignments
+                    );
                 }
 
             } catch (error) {
+
                 console.log(error);
+
             } finally {
+
                 setLoading(false);
             }
         }
@@ -40,227 +63,380 @@ export default function AssignmentsPage() {
 
     }, []);
 
+    async function handleDelete(
+        id: string
+    ) {
+
+        const confirmDelete =
+            confirm(
+                "Delete this assignment?"
+            );
+
+        if (!confirmDelete) return;
+
+        try {
+
+            const res =
+                await fetch(
+                    `/api/assignments/${id}`,
+                    {
+                        method: "DELETE",
+                    }
+                );
+
+            const data =
+                await res.json();
+
+            if (data.success) {
+
+                setAssignments((prev) =>
+                    prev.filter(
+                        (assignment) =>
+                            assignment._id !== id
+                    )
+                );
+            }
+
+        } catch (error) {
+
+            console.log(error);
+        }
+    }
+
+    const filteredAssignments =
+        assignments.filter(
+            (assignment) =>
+                assignment.subject
+                    .toLowerCase()
+                    .includes(
+                        search.toLowerCase()
+                    )
+        );
+
+    if (loading) {
+
+        return (
+
+            <div className="
+                w-full
+                h-full
+                flex
+                items-center
+                justify-center
+            ">
+
+                <h1 className="
+                    text-3xl
+                    font-bold
+                ">
+                    Loading...
+                </h1>
+
+            </div>
+        );
+    }
 
     return (
 
-        <div className="w-full h-full overflow-y-auto p-5 bg-[#F6F6F6]">
+        <div className="
+            w-full
+            h-full
+            overflow-y-auto
+            px-8
+            py-6
+        ">
+
+            {/* HEADER */}
+
+            <div className="
+                flex
+                items-center
+                justify-between
+                mb-8
+            ">
+
+                <div>
+
+                    <h1 className="
+                        text-[52px]
+                        font-bold
+                        text-[#2D2D2D]
+                    ">
+                        Assignments
+                    </h1>
+
+                    <p className="
+                        text-gray-500
+                        text-lg
+                        mt-1
+                    ">
+                        Manage and create assignments for your classes.
+                    </p>
+
+                </div>
+
+                {/* SEARCH */}
+
+                <input
+                    type="text"
+                    placeholder="Search Assignment"
+                    value={search}
+                    onChange={(e) =>
+                        setSearch(e.target.value)
+                    }
+                    className="
+                        w-[280px]
+                        bg-white
+                        border
+                        border-[#E5E5E5]
+                        rounded-full
+                        text-black
+                        px-5
+                        py-3
+                        outline-none
+                        text-sm
+                    "
+                />
+
+            </div>
+
+            {/* EMPTY STATE */}
 
             {
-                loading ? (
+                filteredAssignments.length === 0 && (
 
-                    <div className="w-full h-full flex items-center justify-center">
-                        <h1 className="text-2xl font-semibold">
-                            Loading...
-                        </h1>
-                    </div>
-
-                ) : assignments.length === 0 ? (
-
-                    <div className="w-full h-full flex items-center justify-center">
-
-                        <div className="flex flex-col items-center text-center">
-
-                            <Image
-                                src="/empty.png"
-                                alt="No assignments"
-                                width={320}
-                                height={320}
-                                className="object-contain"
-                            />
-
-                            <h1 className="text-[32px] font-bold text-[#2D2D2D] mt-2">
-                                No assignments yet
-                            </h1>
-
-                            <p className="text-[#7A7A7A] max-w-[520px] mt-3 text-[18px] leading-relaxed">
-                                Create your first assignment to start collecting and grading
-                                student submissions.
-                            </p>
-
-                            <button className="mt-8 bg-[#1F1F1F] hover:scale-105 transition-all text-white px-8 py-4 rounded-full text-lg shadow-lg">
-                                + Create Your First Assignment
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                ) : (
-
-                    <div>
-
-                        {/* Top Header */}
-
-                        <div className="flex items-center justify-between mb-8">
-
-                            <div>
-
-                                <h1 className="text-3xl font-bold text-[#2D2D2D]">
-                                    Assignments
-                                </h1>
-
-                                <p className="text-gray-500 mt-1">
-                                    Manage and create assignments for your classes.
-                                </p>
-
-                            </div>
-
-                            <input
-                                type="text"
-                                placeholder="Search Assignment"
-                                className="border rounded-full px-5 py-3 w-[320px] outline-none"
-                            />
-
-                        </div>
-
-                        {/* Assignment Cards */}
-
-                        <div className="grid grid-cols-2 gap-4">
-
-                            {assignments.map((assignment) => (
-
-                                <div
-                                    key={assignment._id}
-                                    className="bg-white rounded-[24px] p-5 border border-[#EAEAEA] shadow-sm hover:shadow-md transition-all min-h-[190px] flex flex-col justify-between"
-                                >
-
-                                    {/* Top */}
-
-                                    <div className="flex items-start justify-between">
-
-                                        <h2 className="text-[34px] font-bold text-[#2D2D2D] leading-tight">
-                                            {assignment.subject}
-                                        </h2>
-
-                                        <div className="relative">
-
-                                            <button
-                                                onClick={() =>
-                                                    setOpenMenu(
-                                                        openMenu === assignment._id
-                                                            ? null
-                                                            : assignment._id
-                                                    )
-                                                }
-                                                className="text-gray-400 text-2xl px-2"
-                                            >
-                                                ⋮
-                                            </button>
-
-                                            {
-                                                openMenu === assignment._id && (
-
-                                                    <div
-                                                        className="
-                    absolute
-                    right-0
-                    top-10
-                    bg-white
-                    shadow-xl
-                    rounded-2xl
-                    border
-                    w-[170px]
-                    py-2
-                    z-50
-                "
-                                                    >
-
-                                                        <a
-                                                            href={`/assignments/${assignment._id}`}
-                                                            className="
-                        block
-                        px-4
-                        py-2
-                        text-sm
-                        text-black
-                        hover:bg-gray-100
-                        transition-all
-                    "
-                                                        >
-                                                            View Assignment
-                                                        </a>
-
-                                                        <button
-                                                            className="
+                    <div className="
                         w-full
-                        text-left
-                        px-4
-                        py-2
-                        text-sm
-                        text-red-500
-                        hover:bg-red-50
-                        transition-all
-                    "
-                                                        >
-                                                            Delete
-                                                        </button>
+                        flex
+                        flex-col
+                        items-center
+                        justify-center
+                        mt-20
+                    ">
 
-                                                    </div>
+                        <Image
+                            src="/empty.png"
+                            alt="No assignments"
+                            width={250}
+                            height={250}
+                        />
 
-                                                )
-                                            }
+                        <h1 className="
+                            text-3xl
+                            font-bold
+                            mt-6
+                            text-[#2D2D2D]
+                        ">
+                            No matching assignments
+                        </h1>
 
-                                        </div>
+                    </div>
+                )
+            }
 
-                                    </div>
+            {/* GRID */}
 
-                                    {/* Bottom Info */}
+            <div className="
+                grid
+                grid-cols-2
+                gap-6
+            ">
 
-                                    <div className="flex items-end justify-between mt-8">
+                {
+                    filteredAssignments.map(
+                        (assignment) => (
 
-                                        <div>
 
-                                            <p className="text-[#8A8A8A] text-sm">
-                                                Assigned on :
-                                                {" "}
-                                                <span className="font-medium">
-                                                    {
-                                                        new Date(
-                                                            assignment.createdAt
-                                                        ).toLocaleDateString()
-                                                    }
-                                                </span>
-                                            </p>
+                            <div
+                                key={assignment._id}
+                                className="
+        bg-white
+        rounded-[30px]
+        p-6
+        shadow-sm
+        border
+        border-[#ECECEC]
+        min-h-[220px]
+        flex
+        flex-col
+        justify-between
+        relative
+    "
+                            >
 
-                                        </div>
+                                {/* TOP */}
 
-                                        <div>
+                                <div className="flex items-start justify-between">
 
-                                            <p className="text-[#8A8A8A] text-sm">
-                                                Class :
-                                                {" "}
-                                                <span className="font-medium">
-                                                    {assignment.class}
-                                                </span>
-                                            </p>
+                                    <h2 className="
+            text-[28px]
+            font-bold
+            text-[#2D2D2D]
+            leading-tight
+        ">
+                                        {assignment.subject}
+                                    </h2>
 
-                                        </div>
+                                    {/* MENU */}
 
-                                    </div>
+                                    <div className="relative">
 
-                                    {/* Actions */}
+                                        <button
+                                            onClick={(e) => {
 
-                                    <div className="mt-5">
+                                                e.stopPropagation();
 
-                                        <a
-                                            href={`/assignments/${assignment._id}`}
-                                            className="bg-black text-white px-5 py-2.5 rounded-full text-sm inline-flex items-center hover:scale-105 transition-all"
+                                                setOpenMenu(
+                                                    openMenu === assignment._id
+                                                        ? null
+                                                        : assignment._id
+                                                );
+                                            }}
+                                            className="
+                    text-gray-400
+                    text-2xl
+                    rotate-90
+                "
                                         >
-                                            View Assignment
-                                        </a>
+                                            ⋮
+                                        </button>
+
+                                        {
+                                            openMenu === assignment._id && (
+
+                                                <div
+                                                    className="
+                            absolute
+                            right-0
+                            top-10
+                            bg-white
+                            shadow-xl
+                            rounded-2xl
+                            p-2
+                            z-50
+                            w-[170px]
+                            border
+                        "
+                                                >
+
+                                                    <Link
+                                                        href={`/assignments/${assignment._id}`}
+                                                        className="
+                                block
+                                w-full
+                                text-left
+                                px-4
+                                py-2
+                                rounded-xl
+                                hover:bg-[#F5F5F5]
+                                text-black
+                            "
+                                                    >
+                                                        View
+                                                    </Link>
+
+                                                    <button
+                                                        onClick={() =>
+                                                            handleDelete(
+                                                                assignment._id
+                                                            )
+                                                        }
+                                                        className="
+                                w-full
+                                text-left
+                                px-4
+                                py-2
+                                rounded-xl
+                                hover:bg-red-50
+                                text-red-500
+                            "
+                                                    >
+                                                        Delete
+                                                    </button>
+
+                                                </div>
+                                            )
+                                        }
 
                                     </div>
 
                                 </div>
 
-                            ))}
+                                {/* MIDDLE */}
 
-                        </div>
+                                <div className="
+        flex
+        items-center
+        justify-between
+        mt-10
+    ">
 
-                    </div>
+                                    <div>
 
-                )
-            }
+                                        <p className="
+                text-gray-500
+                text-lg
+            ">
+                                            Assigned on :
+                                            {" "}
+                                            {
+                                                new Date(
+                                                    assignment.createdAt
+                                                ).toLocaleDateString(
+                                                    "en-GB"
+                                                )
+                                            }
+                                        </p>
+
+                                    </div>
+
+                                    <div>
+
+                                        <p className="
+                text-gray-500
+                text-lg
+            ">
+                                            Class :
+                                            {" "}
+                                            {assignment.class}th
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                {/* BUTTON */}
+
+                                <div className="mt-8">
+
+                                    <Link
+                                        href={`/assignments/${assignment._id}`}
+                                        className="
+                inline-flex
+                items-center
+                justify-center
+                bg-black
+                text-white
+                px-6
+                py-3
+                rounded-full
+                hover:scale-105
+                transition-all
+            "
+                                    >
+                                        View Assignment
+                                    </Link>
+
+                                </div>
+
+                            </div>
+
+
+                        )
+                    )
+                }
+
+            </div>
 
         </div>
     );

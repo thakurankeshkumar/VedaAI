@@ -1,64 +1,241 @@
-import connectDB from "@/lib/connectDB";
-import Assignment from "@/models/Assignment";
+"use client";
 
-type PageProps = {
-    params: Promise<{ id: string; }>;
+import { useEffect, useRef, useState } from "react";
+import { useParams } from "next/navigation";
+
+type AssignmentType = {
+    _id: string;
+    schoolName: string;
+    subject: string;
+    class: string;
+    time: string;
+    totalMarks: number;
+    instructions: string[];
+    sections: {
+        title: string;
+        questions: {
+            question: string;
+            options?: string[];
+            marks?: string;
+            difficulty?: string;
+        }[];
+    }[];
 };
 
-export default async function AssignmentPage({ params, }: PageProps) {
-    await connectDB();
-    const { id } = await params;
-    const assignment = await Assignment.findById(id).lean();
-    if (!assignment) {
+export default function AssignmentPage() {
+
+    const params = useParams();
+
+    const [assignment, setAssignment] =
+        useState<AssignmentType | null>(null);
+
+    const [loading, setLoading] = useState(true);
+
+    const paperRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+
+        async function fetchAssignment() {
+
+            try {
+
+                const res = await fetch(
+                    `/api/assignments/${params.id}`
+                );
+
+                const data = await res.json();
+
+                if (data.success) {
+                    setAssignment(data.assignment);
+                }
+
+            } catch (error) {
+
+                console.log(error);
+
+            } finally {
+
+                setLoading(false);
+            }
+        }
+
+        fetchAssignment();
+
+    }, [params.id]);
+
+
+
+    const downloadPDF = async () => {
+
+        if (!paperRef.current || !assignment) return;
+
+        const html2pdf =
+            (await import("html2pdf.js")).default;
+
+        const element = paperRef.current;
+
+        const options = {
+
+            margin: 0.5,
+
+            filename:
+                `${assignment.subject}-assignment.pdf`,
+
+            image: {
+                type: "jpeg" as const,
+                quality: 1,
+            },
+
+            html2canvas: {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: "#ffffff",
+            },
+
+            jsPDF: {
+                unit: "in" as const,
+                format: "a4" as const,
+                orientation: "portrait" as const,
+            },
+        };
+
+        html2pdf()
+            .set(options)
+            .from(element)
+            .save();
+    };
+
+
+
+    if (loading) {
+
         return (
-            <div className="p-10">
-                <h1 className="text-3xl font-bold">
-                    Assignment Not Found
-                </h1>
+            <div className="p-10 text-2xl">
+                Loading...
+            </div>
+        );
+    }
+
+    if (!assignment) {
+
+        return (
+            <div className="p-10 text-3xl text-black font-bold">
+                Assignment Not Found
             </div>
         );
     }
 
     return (
-        <div className="p-6 text-black">
-            {/* BLACK HEADER */}
-            <div className="bg-[#1e1e1e] rounded-3xl p-6 text-white mb-6">
-                <h2 className="text-xl font-semibold mb-4">
+
+        <div
+            className="
+                h-[calc(100vh-120px)]
+                overflow-y-auto
+                pr-2
+            "
+        >
+
+            {/* HEADER */}
+
+            <div
+                className="
+                    bg-[#1E1E1E]
+                    rounded-[30px]
+                    p-6
+                    text-white
+                    mb-6
+                "
+            >
+
+                <h2
+                    className="
+                        text-2xl
+                        font-semibold
+                        mb-4
+                    "
+                >
                     Certainly! Here is your customized question paper.
                 </h2>
 
-                <button className="bg-white text-black px-5 py-2 rounded-full text-sm font-medium">
+                <button
+                    onClick={downloadPDF}
+                    className="
+                        bg-white
+                        text-black
+                        px-6
+                        py-3
+                        rounded-full
+                        cursor-pointer
+                        font-medium
+                        hover:scale-105
+                        transition-all
+                    "
+                >
                     Download as PDF
                 </button>
+
             </div>
 
-            {/* QUESTION PAPER */}
-            <div className="bg-white rounded-3xl shadow-sm max-w-5xl mx-auto p-10">
 
-                {/* HEADER */}
-                <div className="text-center mb-14">
 
-                    <h1 className="text-5xl font-bold mb-4">
+            {/* PAPER */}
+
+            <div
+                ref={paperRef}
+                className="
+                    pdf-content
+                    bg-white
+                    text-black
+                    rounded-[40px]
+                    max-w-5xl
+                    mx-auto
+                    p-14
+                    shadow-sm
+                "
+            >
+
+                {/* TOP */}
+
+                <div className="text-center mb-16">
+
+                    <h1
+                        className="
+                            text-6xl
+                            font-bold
+                            mb-5
+                        "
+                    >
                         {assignment.schoolName}
                     </h1>
 
-                    <h2 className="text-3xl font-semibold mb-3">
+                    <h2
+                        className="
+                            text-4xl
+                            font-semibold
+                            mb-3
+                        "
+                    >
                         Subject: {assignment.subject}
                     </h2>
 
-                    <h3 className="text-2xl">
+                    <h3 className="text-3xl">
                         Class: {assignment.class}
                     </h3>
 
                 </div>
 
+
+
                 {/* INFO */}
-                <div className="
-                flex
-                justify-between
-                text-xl
-                mb-14
-                ">
+
+                <div
+                    className="
+                        flex
+                        justify-between
+                        text-2xl
+                        mb-16
+                    "
+                >
 
                     <p>
                         Time Allowed: {assignment.time}
@@ -72,12 +249,17 @@ export default async function AssignmentPage({ params, }: PageProps) {
 
                 </div>
 
+
+
                 {/* STUDENT DETAILS */}
-                <div className="
-                mb-16
-                space-y-3
-                text-lg
-                ">
+
+                <div
+                    className="
+                        mb-16
+                        space-y-5
+                        text-xl
+                    "
+                >
 
                     <p>
                         Name: _____________________
@@ -93,31 +275,33 @@ export default async function AssignmentPage({ params, }: PageProps) {
 
                 </div>
 
+
+
                 {/* INSTRUCTIONS */}
-                <div className="mb-16">
 
-                    <h2 className="
-                    text-4xl
-                    font-bold
-                    mb-6
-                    ">
+                <div className="mb-20">
 
+                    <h2
+                        className="
+                            text-5xl
+                            font-bold
+                            mb-8
+                        "
+                    >
                         Instructions
-
                     </h2>
 
-                    <ul className="
-                    list-disc
-                    pl-8
-                    space-y-3
-                    text-lg
-                    ">
+                    <ul
+                        className="
+                            list-disc
+                            pl-8
+                            space-y-4
+                            text-xl
+                        "
+                    >
 
                         {assignment.instructions?.map(
-                            (
-                                item: string,
-                                index: number
-                            ) => (
+                            (item, index) => (
 
                                 <li key={index}>
                                     {item}
@@ -129,61 +313,55 @@ export default async function AssignmentPage({ params, }: PageProps) {
 
                 </div>
 
+
+
                 {/* SECTIONS */}
+
                 {assignment.sections?.map(
-                    (
-                        section: {
-                            title: string;
-                            questions: {
-                                question: string;
-                                options?: string[];
-                                marks?: string;
-                                difficulty?: string;
-                            }[];
-                        },
-                        index: number
-                    ) => (
+                    (section, index) => (
 
                         <div
                             key={index}
                             className="mb-20"
                         >
 
-                            <h2 className="
-                            text-4xl
-                            font-bold
-                            mb-10
-                            border-b
-                            pb-4
-                            ">
+                            <h2
+                                className="
+                                    text-5xl
+                                    font-bold
+                                    mb-10
+                                    border-b
+                                    border-black
+                                    pb-4
+                                "
+                            >
 
                                 {section.title}
 
                             </h2>
 
-                            <div className="space-y-12">
+                            <div className="space-y-14">
 
                                 {section.questions?.map(
-                                    (
-                                        q,
-                                        i
-                                    ) => (
+                                    (q, i) => (
 
                                         <div
                                             key={i}
                                             className="
-                                            border-b
-                                            border-[#E5E5E5]
-                                            pb-8
+                                                border-b
+                                                border-[#E5E5E5]
+                                                pb-10
                                             "
                                         >
 
-                                            <p className="
-                                            text-2xl
-                                            font-semibold
-                                            leading-relaxed
-                                            mb-6
-                                            ">
+                                            <p
+                                                className="
+                                                    text-2xl
+                                                    font-semibold
+                                                    leading-relaxed
+                                                    mb-6
+                                                "
+                                            >
 
                                                 {i + 1}.
                                                 {" "}
@@ -191,55 +369,69 @@ export default async function AssignmentPage({ params, }: PageProps) {
 
                                             </p>
 
-                                            {q.options && (
+                                            {
+                                                q.options && (
 
-                                                <div className="
-                                                space-y-4
-                                                pl-6
-                                                text-xl
-                                                mb-6
-                                                ">
+                                                    <div
+                                                        className="
+                                                            space-y-4
+                                                            pl-6
+                                                            text-xl
+                                                        "
+                                                    >
 
-                                                    {q.options.map(
-                                                        (
-                                                            option,
-                                                            optionIndex
-                                                        ) => (
+                                                        {q.options.map(
+                                                            (
+                                                                option,
+                                                                optionIndex
+                                                            ) => (
 
-                                                            <p
-                                                                key={
-                                                                    optionIndex
-                                                                }
-                                                            >
-                                                                {option}
-                                                            </p>
-                                                        )
-                                                    )}
+                                                                <p
+                                                                    key={
+                                                                        optionIndex
+                                                                    }
+                                                                >
+                                                                    {
+                                                                        String.fromCharCode(
+                                                                            65 + optionIndex
+                                                                        )
+                                                                    }
+                                                                    )
+                                                                    {" "}
+                                                                    {option}
+                                                                </p>
+                                                            )
+                                                        )}
 
-                                                </div>
-                                            )}
+                                                    </div>
+                                                )
+                                            }
 
-                                            <div className="
-                                            flex
-                                            gap-6
-                                            text-[#7A7A7A]
-                                            text-lg
-                                            mt-4
-                                            ">
+                                            <div
+                                                className="
+                                                    flex
+                                                    gap-6
+                                                    mt-8
+                                                    text-lg
+                                                    text-gray-500
+                                                "
+                                            >
 
-                                                {q.marks && (
+                                                {
+                                                    q.marks && (
+                                                        <span>
+                                                            {q.marks} Marks
+                                                        </span>
+                                                    )
+                                                }
 
-                                                    <p>
-                                                        {q.marks} Marks
-                                                    </p>
-                                                )}
-
-                                                {q.difficulty && (
-
-                                                    <p>
-                                                        {q.difficulty}
-                                                    </p>
-                                                )}
+                                                {
+                                                    q.difficulty && (
+                                                        <span>
+                                                            {q.difficulty}
+                                                        </span>
+                                                    )
+                                                }
 
                                             </div>
 
@@ -251,64 +443,6 @@ export default async function AssignmentPage({ params, }: PageProps) {
 
                         </div>
                     )
-                )}
-
-                {/* ANSWERS */}
-                {assignment.answers && (
-
-                    <div className="mt-24">
-
-                        <h2 className="
-                        text-4xl
-                        font-bold
-                        mb-10
-                        border-b
-                        pb-4
-                        ">
-
-                            Answer Key
-
-                        </h2>
-
-                        <div className="
-                        space-y-8
-                        text-xl
-                        leading-relaxed
-                        ">
-
-                            {assignment.answers.map(
-                                (
-                                    answer: {
-                                        question: string;
-                                        answer: string;
-                                    },
-                                    index: number
-                                ) => (
-
-                                    <div key={index}>
-
-                                        <p className="
-                                        font-semibold
-                                        mb-2
-                                        ">
-
-                                            {index + 1}.
-                                            {" "}
-                                            {answer.question}
-
-                                        </p>
-
-                                        <p className="text-[#444]">
-                                            {answer.answer}
-                                        </p>
-
-                                    </div>
-                                )
-                            )}
-
-                        </div>
-
-                    </div>
                 )}
 
             </div>

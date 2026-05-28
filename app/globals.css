@@ -24,3 +24,11 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+.pdf-content * {
+    color: black !important;
+    background-color: white !important;
+    border-color: #d1d5db !important;
+    box-shadow: none !important;
+}
